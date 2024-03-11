@@ -26,10 +26,11 @@
         <div class="card">
             <div class="card-body login-card-body">
                 <p class="login-box-msg">Sign in to start your session</p>
+                @include('mail.message')
+
                 @if ($errors->has('default'))
                 <div class="alert alert-danger">{{ $errors->first('default') }}</div>
                 @endif
-                @include('mail.message')
                 <form action="{{ url('login') }}" method="post">
                     @csrf
                     <div class="input-group mb-3">

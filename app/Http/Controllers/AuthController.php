@@ -39,13 +39,14 @@ class AuthController extends Controller
             'password' => 'required',
         ]);
 
-        $verificationToken = Str::random(40);
+        $remember_token = Str::random(40);
 
         $user = User::create([
             'name' => $request->name,
             'email' => $request->email,
             'password' => bcrypt($request->password),
-            'verification_token' => $verificationToken,
+            'remember_token' => $remember_token,
+            'email_verified_at' => null,
         ]);
 
         Mail::to('mirzaati450@gmail.com')->send(new UserMail($user));
@@ -55,16 +56,22 @@ class AuthController extends Controller
 
     public function verify($token)
 {
-    $user = User::where('remember_token', $token)->first();
+    $user = User::where('verification_token', $token)->first();
 
     if (!empty($user)) {
         $user->email_verified_at = now();
         $user->remember_token = Str::random(40);
         $user->save();
 
+        // Log success
+        \Log::info('User email verified: ' . $user->email);
+
         return redirect('login')->with('success', 'Your account has been successfully verified');
     } else {
-        abort(404);
+        // Log failure
+        \Log::warning('Invalid verification token: ' . $token);
+
+        return redirect('login')->withErrors(['default' => 'Invalid verification token']);
     }
 }
 
